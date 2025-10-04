@@ -9,6 +9,8 @@ import datetime
 
 
 def main():
+    
+    print(subprocess.run(['clear'], capture_output=True).stdout.decode('utf-8'))
     # ram info
     mem_total = False
     mem_avail = False
@@ -40,7 +42,7 @@ def main():
     str_total, str_used, str_free = shutil.disk_usage("/")
 
     # OS Info
-    hostname = os.uname().nodename
+    hostname, domain = os.uname().nodename.split('.')
     os_kern = os.uname().release
     os_name = False
     os_ver = False
@@ -82,13 +84,16 @@ def main():
                     break
                 dns1 = line.split(' ')[-1].strip()
     
+
     output = f"""
                     System Report - {datetime.datetime.now().strftime("%B %d, %Y")}
 Device Information
 Hostname:                   {hostname}
+Domain:                     {domain}
 
 Network Information
-IP Address:                 {ip}/{mask}
+IP Address:                 {ip}
+Netmask:                    {''.join([str(int(x,2))+'.' for x in ''.join(['1'+chr(46*int((x+1)%8==0)) if x<mask else '0'+chr(46*int((x+1)%8==0)*int(x!=31)) for x in range(0,32)]).replace(chr(0), '').split('.')]).strip('.')}
 Gateway:                    {gateway}
 DNS1:                       {dns1}
 DNS2:                       {dns2}
@@ -113,6 +118,8 @@ Total RAM:                  {int(mem_total)/1000000:,.2f} GiB
 Avaliable RAM:              {int(mem_avail)/1000000:,.2f} GiB
     """
     print(output)
+    with open(f"{subprocess.run(['bash', '-c', 'echo ~'], capture_output=True).stdout.decode('utf-8').strip()}/{hostname}_system_report.log", "w") as file:
+        file.write(output)
 
 if __name__ == "__main__":
 
